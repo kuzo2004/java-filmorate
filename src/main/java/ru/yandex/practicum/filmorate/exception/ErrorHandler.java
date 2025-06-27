@@ -15,16 +15,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class ErrorHandler {
 
-    // Обработка ручных ValidationException
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(ValidationException e) {
-        log.warn("Ошибка валидации: {}", e.getMessage());
-        return ResponseEntity
-                .status(404)    // 404
-                .body(Map.of("error", e.getMessage()));
-    }
-
-    // Обработка дублированных данных ValidationExceptionDuplicate
+    // Обработка дублированных данных ValidationExceptionDuplicate (email, login - д.б. уникальны)
     @ExceptionHandler(ValidationExceptionDuplicate.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptionDuplicate(ValidationExceptionDuplicate e) {
         log.warn("Ошибка валидации: {}", e.getMessage());
