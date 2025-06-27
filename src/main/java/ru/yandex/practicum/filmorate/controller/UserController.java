@@ -2,8 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationExceptionDuplicate;
 import ru.yandex.practicum.filmorate.model.User;
 import jakarta.validation.Valid;
@@ -33,10 +34,35 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody UserUpdateDTO updatedUser) {
+    public User updateUser(@Valid @RequestBody User updatedUser) {
+        // Проверка существования пользователя
         if (!users.containsKey(updatedUser.getId())) {
             log.error("Пользователь с ID {} не найден", updatedUser.getId());
-            throw new ValidationException("Пользователь с ID " + updatedUser.getId() + " не найден");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Пользователь с ID " + updatedUser.getId() + " не найден");
+        }
+
+        // Проверка уникальности email и login
+        checkEmailUniqueness(updatedUser.getEmail(), updatedUser.getId());
+        checkLoginUniqueness(updatedUser.getLogin(), updatedUser.getId());
+
+        // Если name не указан, устанавливаем login в качестве name
+        if (updatedUser.getName() == null || updatedUser.getName().isBlank()) {
+            updatedUser.setName(updatedUser.getLogin());
+        }
+
+        // Полная замена пользователя
+        users.put(updatedUser.getId(), updatedUser);
+        log.info("Пользователь полностью обновлён: {}", updatedUser);
+        return updatedUser;
+    }
+
+    @PatchMapping
+    public User patchUser(@Valid @RequestBody UserUpdateDTO updatedUser) {
+        if (!users.containsKey(updatedUser.getId())) {
+            log.error("Пользователь с ID {} не найден", updatedUser.getId());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Пользователь с ID " + updatedUser.getId() + " не найден");
         }
 
         User existingUser = users.get(updatedUser.getId());
@@ -66,7 +92,6 @@ public class UserController {
         log.info("Обновлён пользователь: {}", existingUser);
         return existingUser;
     }
-
 
     @GetMapping
     public Collection<User> getAllUsers() {

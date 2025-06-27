@@ -1,8 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 import jakarta.validation.Valid;
 import ru.yandex.practicum.filmorate.model.FilmUpdateDTO;
@@ -24,11 +25,26 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody FilmUpdateDTO updatedFilm) {
+    public Film updateFilm(@Valid @RequestBody Film updatedFilm) {
         // Проверка существования фильма
         if (!films.containsKey(updatedFilm.getId())) {
             log.error("Фильм с ID {} не найден", updatedFilm.getId());
-            throw new ValidationException("Фильм с ID " + updatedFilm.getId() + " не найден");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Фильм с ID " + updatedFilm.getId() + " не найден");
+        }
+        // Полная замена фильма - все поля будут перезаписаны
+        films.put(updatedFilm.getId(), updatedFilm);
+        log.info("Фильм полностью обновлён: {}", updatedFilm);
+        return updatedFilm;
+    }
+
+    @PatchMapping
+    public Film patchFilm(@Valid @RequestBody FilmUpdateDTO updatedFilm) {
+        // Проверка существования фильма
+        if (!films.containsKey(updatedFilm.getId())) {
+            log.error("Фильм с ID {} не найден", updatedFilm.getId());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Фильм с ID " + updatedFilm.getId() + " не найден");
         }
 
         Film existingFilm = films.get(updatedFilm.getId());
