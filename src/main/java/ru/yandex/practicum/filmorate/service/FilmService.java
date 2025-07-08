@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationExceptionDuplicate;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.util.Collection;
 import java.util.Comparator;
+import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -18,7 +18,6 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
 
-    @Autowired
     public FilmService(FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
@@ -59,6 +58,13 @@ public class FilmService {
         // Проверить существование пользователя
         userService.getUser(userId);
 
+        // Проверить существование лайка
+        if (film.getLikes().contains(userId)) {
+            log.debug(String.format("Пользователь %d уже ставил лайк фильму %d", userId, filmId));
+            throw new ValidationExceptionDuplicate(
+                    String.format("Пользователь %d уже ставил лайк фильму %d", userId, filmId)
+            );
+        }
         film.getLikes().add(userId);
 
         filmStorage.updateFilm(film);
