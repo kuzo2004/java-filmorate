@@ -2,55 +2,64 @@ package ru.yandex.practicum.filmorate.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
-    // Обработка дублированных данных ValidationExceptionDuplicate (email, login - д.б. уникальны)
     @ExceptionHandler(ValidationExceptionDuplicate.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptionDuplicate(ValidationExceptionDuplicate e) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
+    public ErrorResponse handleValidationExceptionDuplicate(ValidationExceptionDuplicate e) {
         log.warn("Ошибка валидации: {}", e.getMessage());
-        return ResponseEntity
-                .status(400)    // 400
-                .body(Map.of("error", e.getMessage()));
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND) // 404
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
+        log.warn("Объект не найден: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
     }
 
     // Обработка ошибок валидации (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
-        Map<String, String> errors = new HashMap<>();
-        e.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        log.warn("Ошибки валидации полей: {}", errors);
-        return ResponseEntity
-                .badRequest()    // 400
-                .body(errors);
+    @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
+    public ErrorResponse handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getAllErrors().stream()
+                               .map(error -> ((FieldError) error).getField() + ": "
+                                       + error.getDefaultMessage())
+                               .collect(Collectors.joining("; "));
+        log.warn("Ошибки валидации полей: {}", errorMessage);
+        return new ErrorResponse("Ошибки валидации: " + errorMessage);
     }
 
-    // Обработка ошибок от кастомных валидаторов (ConstraintViolationException)
+    // Обработка ошибок от кастомных валидаторов
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException e) {
-        Map<String, String> errors = new HashMap<>();
-        e.getConstraintViolations().forEach(violation -> {
-            String fieldName = violation.getPropertyPath().toString();
-            String errorMessage = violation.getMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        log.warn("Ошибки валидации: {}", errors);
-        return ResponseEntity
-                .badRequest()    // 400
-                .body(errors);
+    @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
+    public ErrorResponse handleConstraintViolation(ConstraintViolationException e) {
+        String errorMessage = e.getConstraintViolations().stream()
+                               .map(violation -> violation.getPropertyPath() + ": "
+                                       + violation.getMessage())
+                               .collect(Collectors.joining("; "));
+        log.warn("Ошибки валидации: {}", errorMessage);
+        return new ErrorResponse("Ошибки валидации: " + errorMessage);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+    public ErrorResponse handleNotFoundException(Throwable e) {
+        log.warn("Внутренняя ошибка сервера: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
     }
 }
+
+
+
