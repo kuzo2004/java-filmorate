@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
-import jakarta.validation.Valid;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 
 
 @Slf4j
@@ -31,12 +31,11 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public User updateUser(@Valid @RequestBody User user) {
         return userService.updateUser(user);
-
     }
 
     @GetMapping("/{id}")
     public User getUser(@PathVariable int id) {
-        return userService.getUser(id);
+        return userService.findUserById(id);
     }
 
     @GetMapping

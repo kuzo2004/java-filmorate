@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.model;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.UserUpdateDTO;
 
 import java.time.LocalDate;
 import java.util.Set;

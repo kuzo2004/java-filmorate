@@ -1,11 +1,11 @@
 package ru.yandex.practicum.filmorate.model;
 
-import org.junit.jupiter.api.Test;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,6 +29,7 @@ class FilmTest {
         film.setName("");
         film.setReleaseDate(LocalDate.now());
         film.setDuration(120);
+        film.setMpa(new Mpa(1, null));
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty());
@@ -42,6 +43,7 @@ class FilmTest {
         Film film = new Film();
 
         film.setReleaseDate(LocalDate.now());
+        film.setMpa(new Mpa(1, null));
         film.setDuration(120);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -56,6 +58,7 @@ class FilmTest {
         Film film = new Film();
         film.setName("Home Alone");
         film.setDescription("A".repeat(201));
+        film.setMpa(new Mpa(1, null));
         film.setReleaseDate(LocalDate.now());
         film.setDuration(120);
 
@@ -70,6 +73,7 @@ class FilmTest {
     void whenReleaseDateIsNull_thenValidationFails() {
         Film film = new Film();
         film.setName("Home Alone");
+        film.setMpa(new Mpa(1, null));
         //film.setReleaseDate(null);
         film.setDuration(120);
 
@@ -84,6 +88,8 @@ class FilmTest {
     void whenReleaseDateBefore12_18_1895_thenValidationFails() {
         Film film = new Film();
         film.setName("Home Alone");
+        film.setMpa(new Mpa(1, null));
+
         film.setReleaseDate(LocalDate.of(1895, 1, 1));
         film.setDuration(120);
 
@@ -100,6 +106,7 @@ class FilmTest {
         film.setName("Home Alone");
         film.setReleaseDate(LocalDate.now().plusDays(1));
         film.setDuration(120);
+        film.setMpa(new Mpa(1, null));
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty());
@@ -113,6 +120,7 @@ class FilmTest {
         Film film = new Film();
         film.setName("Home Alone");
         film.setReleaseDate(LocalDate.now());
+        film.setMpa(new Mpa(1, null));
         //film.setDuration(null);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -127,6 +135,7 @@ class FilmTest {
         Film film = new Film();
         film.setName("Home Alone");
         film.setReleaseDate(LocalDate.now());
+        film.setMpa(new Mpa(1, null));
         film.setDuration(-1);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -141,6 +150,7 @@ class FilmTest {
         Film film = new Film();
         film.setName("Home Alone");
         film.setReleaseDate(LocalDate.now());
+        film.setMpa(new Mpa(1, null));
         film.setDuration(0);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -156,6 +166,7 @@ class FilmTest {
         film.setName("Home Alone");
         film.setDescription("A".repeat(200));
         film.setReleaseDate(LocalDate.of(2025, 1, 1));
+        film.setMpa(new Mpa(1, null));
         film.setDuration(120);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -182,3 +193,4 @@ class FilmTest {
         assertTrue(errorMessages.contains("Продолжительность фильма не должна быть пустой"));
     }
 }
+
