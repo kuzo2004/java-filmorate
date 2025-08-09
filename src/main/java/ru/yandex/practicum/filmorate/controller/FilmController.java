@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import jakarta.validation.Valid;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -17,28 +17,32 @@ public class FilmController {
     private final FilmService filmService;
 
     public FilmController(FilmService filmService) {
+
         this.filmService = filmService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Film addFilm(@Valid @RequestBody Film film) {
+
         return filmService.addFilm(film);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public Film updateFilm(@Valid @RequestBody Film updatedFilm) {
+
         return filmService.updateFilm(updatedFilm);
     }
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable int id) {
-        return filmService.getFilm(id);
+        return filmService.findFilmById(id);
     }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
+
         return filmService.getAllFilms();
     }
 
