@@ -1,14 +1,18 @@
 package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.annotation.MinReleaseDate;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
+@Builder
 @Data
+@AllArgsConstructor
 public class Film {
     private int id;
 
@@ -27,9 +31,12 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private Integer duration;
 
-    private Set<Integer> likes = new HashSet<>();
+    @NotNull(message = "Рейтинг фильма не должна быть пустой")
+    private Mpa mpa;
+
+    private List<Genre> genres;  //пройти тесты Postman получилось только через List
 
     public Film() {
-        this.likes = new HashSet<>();
+        this.genres = new ArrayList<>();
     }
 }

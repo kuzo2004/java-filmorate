@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -14,6 +15,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
+    public ErrorResponse handleValidationException(ValidationException e) {
+        log.warn("Ошибка запроса от пользователя: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
 
     @ExceptionHandler(ValidationExceptionDuplicate.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
