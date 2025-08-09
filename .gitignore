@@ -46,5 +46,4 @@ build/
 .vscode/
 
 *.db
-db/*checkstyle.xml
-output.txt
+db/*
