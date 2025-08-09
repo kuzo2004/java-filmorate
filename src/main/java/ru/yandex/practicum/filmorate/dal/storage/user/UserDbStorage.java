@@ -33,10 +33,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
-        String sql = """
-                INSERT INTO users (email, login, name, birthday) 
-                VALUES (:email, :login, :name, :birthday)
-                """;
+        String sql = "INSERT INTO users (email, login, name, birthday) " +
+                "VALUES (:email, :login, :name, :birthday)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         MapSqlParameterSource params = new MapSqlParameterSource()
@@ -58,11 +56,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        String sql = """
-                UPDATE users 
-                SET email = :email, login = :login, name = :name, birthday = :birthday 
-                WHERE id = :id
-                """;
+        String sql = "UPDATE users SET email = :email, login = :login, name = :name, birthday = :birthday " +
+                "WHERE id = :id";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("email", user.getEmail())
@@ -84,11 +79,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> findUserById(int id) {
-        String sql = """
-                SELECT * 
-                FROM users 
-                WHERE id = :id
-                """;
+        String sql = " SELECT * FROM users WHERE id = :id";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id);
@@ -150,10 +141,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void addFriend(int userId, int friendId) {
-        String sql = """
-                INSERT INTO friends (user_id, friend_id) 
-                VALUES (:userId, :friendId)
-                """;
+        String sql = " INSERT INTO friends (user_id, friend_id) VALUES (:userId, :friendId)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("friendId", friendId);
@@ -163,10 +151,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void removeFriend(int userId, int friendId) {
-        String sql = """
-                DELETE FROM friends 
-                WHERE user_id = :userId AND friend_id = :friendId
-                """;
+        String sql = "DELETE FROM friends WHERE user_id = :userId AND friend_id = :friendId";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
@@ -178,12 +163,9 @@ public class UserDbStorage implements UserStorage {
     @Override
     // список всех друзей (объектов user) пользователя (без свойства friends, ленивая загрузка)
     public List<User> getFriends(int userId) {
-        String sql = """
-                SELECT u.* 
-                FROM users u 
-                JOIN friends f ON u.id = f.friend_id 
-                WHERE f.user_id = :userId
-                """;
+        String sql = " SELECT u.* FROM users u " +
+                "JOIN friends f ON u.id = f.friend_id " +
+                "WHERE f.user_id = :userId ";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId);
 
@@ -205,11 +187,7 @@ public class UserDbStorage implements UserStorage {
     // список пользователей на основе их ids
     private List<User> getUsersFromListIds(List<Integer> ids) {
 
-        String sql = """
-                SELECT * 
-                FROM users
-                WHERE id IN (:ids) 
-                """;
+        String sql = " SELECT * FROM users WHERE id IN (:ids)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("ids", ids);
 
@@ -218,13 +196,10 @@ public class UserDbStorage implements UserStorage {
 
     // список ids общих друзей между пользователем и другим пользователем
     private List<Integer> getCommonFriendsIds(int userId, int otherId) {
-        String sql = """
-                SELECT f1.friend_id 
-                FROM users u 
-                JOIN friends f1 ON u.id = f1.user_id 
-                JOIN friends f2 ON f1.friend_id = f2.friend_id 
-                WHERE f1.user_id = :userId AND f2.user_id = :otherId
-                """;
+        String sql = "SELECT f1.friend_id FROM users u " +
+                "JOIN friends f1 ON u.id = f1.user_id " +
+                "JOIN friends f2 ON f1.friend_id = f2.friend_id " +
+                "WHERE f1.user_id = :userId AND f2.user_id = :otherId";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
@@ -235,11 +210,7 @@ public class UserDbStorage implements UserStorage {
 
     // выборка из таблицы friends всех id друзей, связанных с пользователем и обновление их у пользователя
     private User loadFriendsIdsIntoUser(User user) {
-        String sql = """
-                SELECT friend_id 
-                FROM friends 
-                WHERE user_id = :userId
-                """;
+        String sql = "SELECT friend_id FROM friends WHERE user_id = :userId";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", user.getId());
@@ -255,10 +226,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     private void delUserFriendsRelations(User user) {
-        String sql = """
-                DELETE FROM friends 
-                WHERE user_id = :userId 
-                """;
+        String sql = "DELETE FROM friends WHERE user_id = :userId";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", user.getId());
@@ -270,10 +238,7 @@ public class UserDbStorage implements UserStorage {
     private void addUserFriendsRelations(User user) {
 
         Set<Integer> friends = user.getFriends();
-        String sql = """
-                INSERT INTO friends (user_id, friend_id) 
-                VALUES (:userId, :friendId)
-                """;
+        String sql = "INSERT INTO friends (user_id, friend_id) VALUES (:userId, :friendId)";
 
         MapSqlParameterSource[] batchParams = friends.stream()
                                                      .map(id -> new MapSqlParameterSource()

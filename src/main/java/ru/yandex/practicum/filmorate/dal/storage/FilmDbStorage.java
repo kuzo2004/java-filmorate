@@ -37,10 +37,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        String sql = """
-                INSERT INTO films (name, description, release_date, duration, mpa_id) 
-                VALUES (:name, :description, :releaseDate, :duration, :mpaId)
-                """;
+        String sql = "INSERT INTO films (name, description, release_date, duration, mpa_id)" +
+                "VALUES (:name, :description, :releaseDate, :duration, :mpaId)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -71,15 +69,8 @@ public class FilmDbStorage implements FilmStorage {
 
         Film existingFilm = findFilmById(film.getId()).get();
 
-        String sql = """
-                UPDATE films 
-                SET name = :name, 
-                description = :description, 
-                release_date = :releaseDate, 
-                duration = :duration, 
-                mpa_id = :mpaId 
-                WHERE id = :id
-                """;
+        String sql = "UPDATE films  SET name = :name, description = :description, " +
+                "release_date = :releaseDate, duration = :duration, mpa_id = :mpaId WHERE id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("name", film.getName())
                 .addValue("description", film.getDescription())
@@ -101,12 +92,10 @@ public class FilmDbStorage implements FilmStorage {
 
 
     public Optional<Film> findFilmById(int id) {
-        String sql = """
-                SELECT f.*, m.name AS mpa_name 
-                FROM films f 
-                JOIN mpa m ON f.mpa_id = m.id 
-                WHERE f.id = :id
-                """;
+        String sql = "SELECT f.*, m.name AS mpa_name " +
+                "FROM films f " +
+                "JOIN mpa m ON f.mpa_id = m.id " +
+                "WHERE f.id = :id ";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id);
 
@@ -131,11 +120,8 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Collection<Film> getAllFilms() {
         // 1. Получаем все фильмы с информацией о MPA, в том числе имя mpa вытащили из справочника
-        String filmsSql = """
-                SELECT f.*, m.name AS mpa_name 
-                FROM films f 
-                JOIN mpa m ON f.mpa_id = m.id
-                """;
+        String filmsSql = "SELECT f.*, m.name AS mpa_name " +
+                "FROM films f JOIN mpa m ON f.mpa_id = m.id";
         List<Film> films = namedJdbcTemplate.query(filmsSql, new FilmMapper());
 
         if (films.isEmpty()) {
@@ -143,11 +129,8 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         // 2. Получаем все жанры для всех фильмов и мэтчим их с именами жанров из справочника жанров
-        String genresSql = """
-                SELECT fg.film_id, g.id AS genre_id, g.name AS genre_name
-                FROM film_genres fg
-                JOIN genres g ON fg.genre_id = g.id
-                """;
+        String genresSql = "SELECT fg.film_id, g.id AS genre_id, g.name AS genre_name " +
+                "FROM film_genres fg JOIN genres g ON fg.genre_id = g.id ";
 
         // мапа - каждый фильм со своим списком жанров
         Map<Integer, List<Genre>> filmGenresMap = new HashMap<>();
@@ -171,15 +154,12 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        String sql = """
-                SELECT f.*, m.name AS mpa_name, COUNT(lk.user_id) AS likes_count
-                FROM films f
-                JOIN mpa m ON f.mpa_id = m.id
-                LEFT JOIN likes lk ON f.id = lk.film_id
-                GROUP BY f.id
-                ORDER BY likes_count DESC, f.id
-                LIMIT :count
-                """;
+        String sql = " SELECT f.*, m.name AS mpa_name, COUNT(lk.user_id) AS likes_count " +
+                "FROM films f JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN likes lk ON f.id = lk.film_id " +
+                "GROUP BY f.id " +
+                "ORDER BY likes_count DESC, f.id " +
+                "LIMIT :count ";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("count", count);
@@ -197,12 +177,10 @@ public class FilmDbStorage implements FilmStorage {
 
 
         // 2. Получаем все жанры для фильмов с использованием GenreMapper
-        String genresSql = """
-                SELECT fg.film_id, g.id AS genre_id, g.name AS genre_name
-                FROM film_genres fg
-                JOIN genres g ON fg.genre_id = g.id
-                WHERE fg.film_id IN (:filmIds)
-                """;
+        String genresSql = "SELECT fg.film_id, g.id AS genre_id, g.name AS genre_name " +
+                "FROM film_genres fg " +
+                "JOIN genres g ON fg.genre_id = g.id " +
+                "WHERE fg.film_id IN (:filmIds)";
 
         MapSqlParameterSource paramsGenre = new MapSqlParameterSource()
                 .addValue("filmIds", filmIds);
@@ -229,10 +207,7 @@ public class FilmDbStorage implements FilmStorage {
 
     // удаление из таблицы связи фильм-жанры
     private void delFilmGenresRelations(Film film) {
-        String sql = """
-                DELETE FROM film_genres 
-                WHERE film_id = :id
-                """;
+        String sql = "DELETE FROM film_genres WHERE film_id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", film.getId());
 
@@ -245,10 +220,7 @@ public class FilmDbStorage implements FilmStorage {
 
         List<Genre> genresList = film.getGenres();
 
-        String sql = """
-                INSERT INTO film_genres (film_id, genre_id) 
-                VALUES (:filmId, :genreId)
-                """;
+        String sql = " INSERT INTO film_genres (film_id, genre_id) VALUES (:filmId, :genreId) ";
         // Создаем массив параметров для batchUpdate
         MapSqlParameterSource[] batchParams = genresList.stream()
                                                         .map(genre -> new MapSqlParameterSource()
@@ -263,14 +235,11 @@ public class FilmDbStorage implements FilmStorage {
 
     // выгрузка из таблицы фильм-жанры всех записей без фильтров
     private List<Genre> getFilmGenresRelations(Film film) {
-        String sql = """
-                SELECT g.id AS genre_id, g.name AS genre_name 
-                FROM genres g 
-                JOIN film_genres fg 
-                ON g.id = fg.genre_id 
-                WHERE fg.film_id = :filmId 
-                ORDER BY g.id
-                """;
+        String sql = "SELECT g.id AS genre_id, g.name AS genre_name " +
+                "FROM genres g " +
+                "JOIN film_genres fg ON g.id = fg.genre_id " +
+                "WHERE fg.film_id = :filmId " +
+                "ORDER BY g.id ";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("filmId", film.getId());
 
