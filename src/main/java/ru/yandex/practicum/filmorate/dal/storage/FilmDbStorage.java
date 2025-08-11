@@ -129,8 +129,11 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         // 2. Получаем все жанры для всех фильмов и мэтчим их с именами жанров из справочника жанров
-        String genresSql = "SELECT fg.film_id, g.id AS genre_id, g.name AS genre_name " +
-                "FROM film_genres fg JOIN genres g ON fg.genre_id = g.id ";
+        String genresSql = "SELECT fg.film_id, " +
+                "g.id AS genre_id," +
+                "g.name AS genre_name " +
+                "FROM film_genres fg " +
+                "JOIN genres g ON fg.genre_id = g.id ";
 
         // мапа - каждый фильм со своим списком жанров
         Map<Integer, List<Genre>> filmGenresMap = new HashMap<>();
@@ -138,10 +141,12 @@ public class FilmDbStorage implements FilmStorage {
         namedJdbcTemplate.query(genresSql,
                 rs -> {
                     int filmId = rs.getInt("film_id");  // Получаем id фильма из текущей строки
-                    Genre genre = new GenreMapper().mapRow(rs, rs.getRow()); // Преобразуем строку в объект Genre
+                    // Преобразуем строку в объект Genre
+                    Genre genre = new GenreMapper("genre_id", "genre_name").mapRow(rs, rs.getRow());
 
                     // все жанры сохраняем по порядку id (требование Postman-тестов) поэтому ArrayList
-                    filmGenresMap.computeIfAbsent(filmId, k -> new ArrayList<>()) // если нет ключа filmId, вставляем его
+                    // если нет ключа filmId, вставляем его
+                    filmGenresMap.computeIfAbsent(filmId, k -> new ArrayList<>())
                                  .add(genre); // теперь ключ есть, добавить жанр
                 });
 
@@ -177,7 +182,9 @@ public class FilmDbStorage implements FilmStorage {
 
 
         // 2. Получаем все жанры для фильмов с использованием GenreMapper
-        String genresSql = "SELECT fg.film_id, g.id AS genre_id, g.name AS genre_name " +
+        String genresSql = "SELECT fg.film_id, " +
+                "g.id AS genre_id," +
+                "g.name AS genre_name " +
                 "FROM film_genres fg " +
                 "JOIN genres g ON fg.genre_id = g.id " +
                 "WHERE fg.film_id IN (:filmIds)";
@@ -191,7 +198,7 @@ public class FilmDbStorage implements FilmStorage {
                 paramsGenre,
                 rs -> {
                     int filmId = rs.getInt("film_id");
-                    Genre genre = new GenreMapper().mapRow(rs, rs.getRow());
+                    Genre genre = new GenreMapper("genre_id", "genre_name").mapRow(rs, rs.getRow());
                     filmGenresMap.computeIfAbsent(filmId, k -> new ArrayList<>())
                                  .add(genre);
                 });
@@ -235,7 +242,9 @@ public class FilmDbStorage implements FilmStorage {
 
     // выгрузка из таблицы фильм-жанры всех записей без фильтров
     private List<Genre> getFilmGenresRelations(Film film) {
-        String sql = "SELECT g.id AS genre_id, g.name AS genre_name " +
+        String sql = "SELECT " +
+                "g.id AS genre_id," +
+                "g.name AS genre_name " +
                 "FROM genres g " +
                 "JOIN film_genres fg ON g.id = fg.genre_id " +
                 "WHERE fg.film_id = :filmId " +
@@ -243,7 +252,7 @@ public class FilmDbStorage implements FilmStorage {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("filmId", film.getId());
 
-        return namedJdbcTemplate.query(sql, params, new GenreMapper());
+        return namedJdbcTemplate.query(sql, params, new GenreMapper("genre_id", "genre_name"));
     }
 
     // загрузка в фильм его жанров из таблицы связи (с id и именем жанра).
