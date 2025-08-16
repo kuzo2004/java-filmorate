@@ -1,18 +1,18 @@
 package ru.yandex.practicum.filmorate.model;
 
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.dto.FilmUpdateDTO;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class FilmUpdateDTOTest {
     private static Validator validator;
